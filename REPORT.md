@@ -12,18 +12,22 @@ Describe the changes you made to the configuration:
 ---
 
 ## 2. Service Registration (Task 1)
-
 ### Accounts Service Registration
 
 ![Accounts Registration Log](docs/screenshots/accounts-registration.png)
 
-Explain what happens during service registration.
+When the microservice starts:
+
+- It loads the Eureka client configuration, where the service name, network address, port, and other relevant parameters are defined.
+- It establishes a connection with the Eureka Server.
+- It sends an initial registration request that includes the service’s status, metadata, and the URL where it can be reached.
+- Once Eureka validates and accepts the registration, it marks the service as UP, indicating that it is operational and available to be discovered by other microservices in the system.
 
 ### Web Service Registration
 
 ![Web Registration Log](docs/screenshots/web-registration.png)
 
-Explain how the web service discovers the accounts service.
+When the web service needs to communicate with the Accounts service, it requests from the Eureka Server the list of instances registered under that identifier (ACCOUNTS-SERVICE). Eureka returns the list of registered instances. The client then selects an available instance and sends its HTTP requests directly to that Accounts service instance.
 
 ---
 
@@ -33,8 +37,13 @@ Explain how the web service discovers the accounts service.
 
 Describe what the Eureka dashboard shows:
 
-- Which services are registered?
-- What information does Eureka track for each instance?
+The registered services are ACCOUNTS-SERVICE and WEB-SERVICE. The information displayed for these instances includes:
+- Service Name
+- Status (indicates whether the instance is available or in another state)
+- IP Address
+- Port
+- Availability Zone
+- AMIs (not used)
 
 ---
 
@@ -45,8 +54,11 @@ Describe what the Eureka dashboard shows:
 Answer the following questions:
 
 - What happens when you start a second instance of the accounts service?
+When a second instance is started, Eureka detects it and registers it alongside the first instance. Therefore, when a client wants to use this service, Eureka returns the list of both instances.
 - How does Eureka handle multiple instances?
+Eureka maintains a record of all active instances. As explained earlier, if a client requests information about a service, Eureka provides the complete list of instances registered under that service name.
 - How does client-side load balancing work with multiple instances?
+When the client receives the list of instances, it distributes requests among the available instances to achieve load balancing and improve system resilience. 
 
 ---
 
@@ -56,7 +68,7 @@ Answer the following questions:
 
 ![Error Screenshot](docs/screenshots/failure-error.png)
 
-Describe what happens immediately after stopping the accounts service on port 3333.
+When the Accounts service instance on port 3333 is stopped, any request sent to the Web service that tries to communicate with that instance will initially fail, since the instance is no longer available. Requests directed to the other instance (e.g., the one running on port 2222) will continue to function normally.
 
 ### Eureka Instance Removal
 
@@ -64,8 +76,9 @@ Describe what happens immediately after stopping the accounts service on port 33
 
 Explain how Eureka detects and removes the failed instance:
 
-- How long did it take for Eureka to remove the dead instance?
+- How long did it take for Eureka to remove the dead instance? ? It took 1 second, this is because of the following line: eviction-interval-timer-in-ms: 1000.
 - What mechanism does Eureka use to detect failures?
+Periodic heartbeats sent by each instance. If the server does not receive a heartbeat within the expected time, it considers the instance failed and removes it from the registry.
 
 ---
 
@@ -94,16 +107,6 @@ Summarize what you learned about:
 
 ## 8. AI Disclosure
 
-**Did you use AI tools?** (ChatGPT, Copilot, Claude, etc.)
+ChatGPT was used to correct grammatically error of this report. Approximately 10% of the report text was generated with AI assistance.
 
-- If YES: Which tools? What did they help with? What did you do yourself?
-- If NO: Write "No AI tools were used."
-
-**Important**: Explain your own understanding of microservices patterns and Eureka behavior, even if AI helped you write parts of this report.
-
----
-
-## Additional Notes
-
-Any other observations or comments about the assignment.
 
