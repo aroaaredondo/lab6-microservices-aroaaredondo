@@ -7,7 +7,13 @@
 Describe the changes you made to the configuration:
 
 - What did you modify in `accounts-service.yml`?
+```` yml
+# HTTP Server
+server:
+  port: 5555   # HTTP (Tomcat) port
+````
 - Why is externalized configuration useful in microservices?
+Externalized configuration is useful in microservices because it separates configuration from code, allowing dynamic updates without redeploying services. It ensures consistency across multiple instances and enables different configurations for different environments.
 
 ---
 
@@ -35,8 +41,6 @@ When the web service needs to communicate with the Accounts service, it requests
 
 ![Eureka Dashboard](docs/screenshots/eureka-dashboard.png)
 
-Describe what the Eureka dashboard shows:
-
 The registered services are ACCOUNTS-SERVICE and WEB-SERVICE. The information displayed for these instances includes:
 - Service Name
 - Status (indicates whether the instance is available or in another state)
@@ -51,13 +55,13 @@ The registered services are ACCOUNTS-SERVICE and WEB-SERVICE. The information di
 
 ![Multiple Instances](docs/screenshots/multiple-instances.png)
 
-Answer the following questions:
-
-- What happens when you start a second instance of the accounts service?
+- **What happens when you start a second instance of the accounts service?**
 When a second instance is started, Eureka detects it and registers it alongside the first instance. Therefore, when a client wants to use this service, Eureka returns the list of both instances.
-- How does Eureka handle multiple instances?
+
+- **How does Eureka handle multiple instances?**
 Eureka maintains a record of all active instances. As explained earlier, if a client requests information about a service, Eureka provides the complete list of instances registered under that service name.
-- How does client-side load balancing work with multiple instances?
+
+- **How does client-side load balancing work with multiple instances?**
 When the client receives the list of instances, it distributes requests among the available instances to achieve load balancing and improve system resilience. 
 
 ---
@@ -76,8 +80,10 @@ When the Accounts service instance on port 3333 is stopped, any request sent to 
 
 Explain how Eureka detects and removes the failed instance:
 
-- How long did it take for Eureka to remove the dead instance? ? It took 1 second, this is because of the following line: eviction-interval-timer-in-ms: 1000.
-- What mechanism does Eureka use to detect failures?
+- **How long did it take for Eureka to remove the dead instance?**
+In our configuration, it took approximately 10 seconds. This is because the instance stops sending heartbeats, and once the time since the last renewal exceeds the lease expiration duration (10 seconds), Eureka marks the instance as unavailable and evicts it from the registry.
+
+- **What mechanism does Eureka use to detect failures?**
 Periodic heartbeats sent by each instance. If the server does not receive a heartbeat within the expected time, it considers the instance failed and removes it from the registry.
 
 ---
@@ -88,20 +94,28 @@ Periodic heartbeats sent by each instance. If the server does not receive a hear
 
 Answer the following questions:
 
-- Why does the web service eventually recover?
-- How long did recovery take?
-- What role does client-side caching play in the recovery process?
+- **Why does the web service eventually recover?**
+This happens because the Web service uses Eureka as a dynamic discovery mechanism. Although it initially fails when trying to communicate with the instance that was stopped, once Eureka detects that this instance is no longer available, it updates its registry and provides the client with a revised list of active instances. From that moment on, requests are correctly routed to the instance that is still running.
+
+- **How long did recovery take?**
+The recovery time corresponds to the interval required for Eureka to detect the instance failure and remove it from its registry.
+
+- **What role does client-side caching play in the recovery process?**
+The client caches the list of instances provided by Eureka in order to avoid excessive queries to the server. As long as this cache still contains the failed instance, the client will continue trying to communicate with it. Once the cache is refreshed with the updated list of available instances, the client stops using the failed instance and the system returns to normal operation.
 
 ---
 
 ## 7. Conclusions
 
-Summarize what you learned about:
+In this lab session, I learned:
 
-- Microservices architecture
-- Service discovery with Eureka
-- System resilience and self-healing
-- Challenges you encountered and how you solved them
+- The practical aspects of microservices architecture and how it enables applications to scale through independent and decoupled services.
+
+- How services register themselves in Eureka and how clients can dynamically discover them without relying on static configurations.
+
+- How Eureka’s heartbeat mechanism works to detect which instances are active and which have failed, and how this process contributes to the system’s self-healing capabilities.
+
+- The role of client-side load balancing, which distributes requests across multiple instances to improve performance and availability.
 
 ---
 
